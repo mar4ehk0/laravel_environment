@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+
+  nginx:
+    container_name: ${COMPOSE_PROJECT_NAME}-nginx
+    restart: always
+    build:
+      context: ./docker/nginx
+      args:
+        - "APP_DOMAIN"
+        - "PUBLIC_PATH"
+        - "SRC_PATH=${SRC_PATH}"
+    volumes:
+      - ./src:${SRC_PATH}
+    ports:
+      - "80:80"
+    networks:
+      project-network:
+        aliases:
+          - ${APP_DOMAIN}
+
+  php-fpm-8:
+    container_name: ${COMPOSE_PROJECT_NAME}-php-fpm
+    restart: always
+    working_dir: ${SRC_PATH}
+    build:
+      context: ./docker/php-fpm
+    environment:
+      PHP_IDE_CONFIG: "serverName=dockerphpfpm"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./src:${SRC_PATH}
+      - ./docker/php-fpm/php-ini-overrides.ini:/etc/php/8.1/fpm/conf.d/99-overrides.ini
+      - ./docker/php-fpm/php-ini-overrides.ini:/etc/php/8.1/cli/conf.d/99-overrides.ini
+    networks:
+      project-network:
+
+  mysql:
+    container_name: ${COMPOSE_PROJECT_NAME}-db
+    image: mysql:5.7
+    working_dir: ${SRC_PATH}
+    volumes:
+      - ./src:${SRC_PATH}
+      - ./docker/mysql/data:/var/lib/mysql
+      - ./docker/mysql/cnf:/etc/mysql/conf.d
+    environment:
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    networks:
+      project-network:
+
+networks:
+  project-network:
+    name: ${COMPOSE_PROJECT_NAME}-oauth-network
