@@ -26,7 +26,9 @@ init: ## Make full application initialization
 	@$(MAKE) stop
 	docker-compose up -d
 ifeq (,$(wildcard ./src/.env))
+	rm ./src/.gitkeep
 	docker-compose exec php-fpm-8 composer create-project laravel/laravel .
+	touch ./src/.gitkeep
 endif
 	docker-compose exec php-fpm-8 composer install --ansi --prefer-dist
 	@rm -f ./src/public/storage
