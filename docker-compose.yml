@@ -28,6 +28,9 @@ services:
       context: ./docker/php-fpm
     environment:
       PHP_IDE_CONFIG: "serverName=dockerphpfpm"
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_HOST: ${COMPOSE_PROJECT_NAME}-db
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -46,6 +49,7 @@ services:
       - ./docker/mysql/data:/var/lib/mysql
       - ./docker/mysql/cnf:/etc/mysql/conf.d
     environment:
+      # Clear all directory ./docker/mysql/data before start or changed password
       - MYSQL_DATABASE=${DB_DATABASE}
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
     ports:
